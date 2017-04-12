@@ -2,6 +2,7 @@
 #define PUZZLE_HEUR_H
 
 #include "board.h"
+//Puzzle solving heurisitc class
 
 class PuzzleHeuristic
 {

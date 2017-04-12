@@ -9,10 +9,11 @@ using namespace std;
 
 
 Board::Board(int dim, int numInitMoves, int seed )
-{
+{ //creates board to specifications by starting with a complete board of
+  //specified size and completing specified number of moves to "scramble."
   size_ = dim*dim;
   tiles_ = new int[size_];
-  srand(seed);
+  srand(seed); //allows for seeding
   for(int i=0; i < size_; i++){
     tiles_[i] = i;
   }
@@ -54,8 +55,27 @@ Board::Board(int dim, int numInitMoves, int seed )
 }
 
 
+Board::Board(const Board &obj){ //copy constructor
+  size_ = obj.size_;
+  tiles_ = new int[size_];
+  for (int i = 0; i < size_; i++){
+    tiles_[i] = obj[i];
+  }
+}
 
+Board& Board::operator=(const Board &rhs)
+{ // assignment operator (unused)
 
+  tiles_ = new int[size_];
+  *tiles_ = *rhs.tiles_;
+  size_ = rhs.size_;
+
+  return *this;
+}
+
+Board::~Board(){
+  delete [] tiles_;
+}
 
 void Board::move(int tile)
 {
@@ -93,20 +113,64 @@ void Board::move(int tile)
 // configuration reflecting the move of that tile into the blank spot
 map<int, Board*> Board::potentialMoves() const
 {
-
+  map<int, Board*> potentialMoves;
+  int bc, br, tc, tr;
+  int side_dim = dim();
   
+  //find blank tile
+  int j=-1;
+  while(tiles_[++j] != 0);
+
+  br = j / side_dim;
+  bc = j % side_dim;
+
+  //test if top, bottom, left, and right tiles exist to move
+  if (br+1 < side_dim){ //if the tile below blank is valid
+    tr = br+1;
+    tc = bc;
+    Board *temp = new Board(*this);
+    temp -> move(tiles_[(tr*side_dim) + tc]);
+    potentialMoves[tiles_[(tr*side_dim) + tc]] = temp;
+  }
+  if (br-1 >= 0){ //if the tile above blank is valid
+    tr = br-1;
+    tc = bc;
+    Board *temp = new Board(*this);
+    temp -> move(tiles_[(tr*side_dim) + tc]);
+    potentialMoves[tiles_[(tr*side_dim) + tc]] = temp;
+  }
+  if (bc+1 < side_dim){ //if the tile to the right of blank is valid
+    tr = br;
+    tc = bc+1;
+    Board *temp = new Board(*this);
+    temp -> move(tiles_[(tr*side_dim) + tc]);
+    potentialMoves[tiles_[(tr*side_dim) + tc]] = temp;
+  }
+  if (bc-1 >= 0){ //if the tile to the left of blank is valid
+    tr = br;
+    tc = bc-1;
+    Board *temp = new Board(*this);
+    temp -> move(tiles_[(tr*side_dim) + tc]);
+    potentialMoves[tiles_[(tr*side_dim) + tc]] = temp;
+  }
+  return potentialMoves;
 }
-
-
-
-
-
-
-
 
 const int& Board::operator[](int loc) const 
 { 
   return tiles_[loc]; 
+}
+
+bool Board::operator<(const Board& rhs) const
+{
+  for (int i = 0; i < size_; i++){ //steps through tile array
+    if (tiles_[i] < rhs[i]){ //if current object's tile is less than rhs's
+      return true; //return true
+    }else if(tiles_[i] > rhs[i]){ //if it's greater, return false
+      return false;
+    }
+  }
+  return false;
 }
 
 int Board::size() const 
@@ -128,4 +192,34 @@ void Board::printRowBanner(ostream& os) const
     os << "--+";
   }
   os << endl;
+}
+
+
+std::ostream& operator<<(std::ostream &os, const Board &b){
+  //print board with correct syntax
+  for (int i = 0; i < b.dim(); i++){
+    os << endl;
+    b.printRowBanner(os); //print row banner before every row
+    os << '|';
+    for (int j = 0; j < b.dim(); j++){
+      if (b[i*b.dim() + j] != 0){
+        //sets 2 spaces per tile
+        os << setfill(' ') << setw(2) << b[i*b.dim() + j] << '|';
+      }else{
+        os << "  " << '|';
+      }
+    }
+  }
+  os << endl;
+  b.printRowBanner(os); //print final row banner
+  return os;
+}
+
+// Returns true if the board is solved, false otherwise
+bool Board::solved() const{
+  for (int i = 0; i < (size_ - 1); i++){
+    if (tiles_[i] > tiles_[i+1])
+      return false;
+  }
+  return true;
 }

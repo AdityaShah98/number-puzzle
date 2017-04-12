@@ -15,8 +15,8 @@ class Board
   Board(int dim, int numInitMoves, int seed);
 
   // ****** Add a copy constructor, destructor, etc. if you need them ****** //
-
-
+  Board(const Board &obj);
+  ~Board();
 
 
   // Swaps the blank with the specified tile value
@@ -42,6 +42,9 @@ class Board
   // If this board's tile is less than the other board's tile value, return true
   // If they are equal, continue with the next tile location and repeat
   bool operator<(const Board& rhs) const;
+
+  //sets one board equal to another;
+  Board& operator=(const Board &rhs);
   
   //---------- Accessors --------------//
 
